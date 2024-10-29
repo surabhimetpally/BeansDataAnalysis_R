@@ -1,0 +1,93 @@
+---
+title: "Beans"
+author: "Surabhi Metpally"
+output: pdf_document
+date: "2024-10-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Prescriptive Analysis of Bean Data
+
+In this section, I will conduct a prescriptive analysis of the bean dataset provided. The goal is to preprocess the data by cleaning it, removing unnecessary columns, and filtering for specific classes of beans. I will also create new variables that will help in categorizing the data based on convex area. 
+
+Following the data transformation, I will perform statistical summaries to gain insights into the characteristics of different bean classes. This will involve calculating measures such as the median area, standard deviation, and percentiles for key variables. Additionally, I will construct a contingency table to explore the relationship between different classifications of beans and their convex area categories. This analysis aims to provide a comprehensive overview of the data, helping to identify patterns and make informed decisions regarding the bean varieties examined.
+
+```{r, message=FALSE}
+# Load the necessary libraries
+library(tidyverse)
+library(readxl)
+
+# Read the data
+beans_data <- read_excel("/Users/surabhimetpally/Downloads/smetpal_beans.xlsx")
+
+# Check the first few rows of the data
+head(beans_data)
+
+```
+
+```{r, message=FALSE}
+# Data Cleaning and Transformation: Select, Rename, Filter, Create New Variables, and Reorder
+
+# Remove unwanted columns and rename
+cleaned_data <- beans_data %>%
+  select(-Roundness, -Solidity) %>%
+  rename(SF1 = ShapeFactor1, SF2 = ShapeFactor2, SF3 = ShapeFactor3, SF4 = ShapeFactor4)
+
+# Filter by class
+filtered_data <- cleaned_data %>%
+  filter(Class %in% c("DERMASON", "BARBUNYA", "HOROZ", "CALI", "SIRA"))
+
+# Create new variables
+transformed_data <- filtered_data %>%
+  mutate(Avg_SF = rowMeans(select(., starts_with("SF")))) %>%
+  mutate(ConvexArea_Category = case_when(
+    ConvexArea > 51625.6 ~ "largest",
+    ConvexArea > 38439.4 & ConvexArea <= 51625.6 ~ "middle",
+    TRUE ~ "lowest"
+  ))
+
+# Reorder data
+final_data <- transformed_data %>%
+  arrange(desc(Eccentricity))
+
+# Display the final data
+final_data
+```
+
+
+```{r, message=FALSE}
+# Contingency Table of Bean Class by Convex Area Category for SF1 < 0.0081
+
+# Filter data for SF1 < 0.0081
+filtered_data <- final_data %>%
+  filter(SF1 < 0.0081)
+
+# Create a two-way contingency table
+contingency_table <- table(filtered_data$Class, filtered_data$ConvexArea_Category)
+
+# Print the table
+contingency_table
+```
+
+```{r, message=FALSE}
+# Summary Statistics for Area and Perimeter by Class
+
+library(dplyr)
+
+bean_stats <- final_data %>%
+  group_by(Class) %>%
+  summarize(
+    Median_Area = median(Area),
+    SD_Area = sd(Area),
+    Percentile_95_Area = quantile(Area, 0.95),
+    Min_Area = min(Area),
+    Median_Perimeter = median(Perimeter),
+    SD_Perimeter = sd(Perimeter),
+    Percentile_95_Perimeter = quantile(Perimeter, 0.95),
+    Min_Perimeter = min(Perimeter)
+  )
+
+print(bean_stats)

@@ -12,6 +12,6 @@ The Beans Analysis Project aims to conduct a prescriptive analysis of a bean dat
 ## Results
 
 The final outputs include:
-- **A cleaned and transformed dataset ready for analysis.
-- **Summary statistics detailing the characteristics of different bean classes.
-- **A contingency table highlighting the relationship between bean class and convex area category.
+- A cleaned and transformed dataset ready for analysis.
+- Summary statistics detailing the characteristics of different bean classes.
+- A contingency table highlighting the relationship between bean class and convex area category.
